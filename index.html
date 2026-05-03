@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krishna Shopee – Pratap Nagar, Jodhpur</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-row1">
+      <div class="logo-box">K</div>
+      <div>
+        <span class="brand-name" id="storeName">Krishna Shopee</span>
+        <span class="brand-tag">OPEN</span>
+      </div>
+      <div class="loc-row">
+        <a href="https://www.google.com/maps/place/13,+LMJ+Rd,+Indira+Colony,+Pratap+Nagar,+Jodhpur,+Rajasthan+342008/@26.2864582,72.9956832,19z"
+           target="_blank" style="text-decoration:none;">
+          <div>
+            <div class="loc-label">📍 Pratap Nagar</div>
+            <div class="loc-sub">13, LMJ Rd, Jodhpur</div>
+          </div>
+        </a>
+        <span class="loc-chevron">▾</span>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search groceries, snacks &amp; more..." oninput="filterAll()">
+    </div>
+    <div class="cats-scroll" id="catsBar"></div>
+  </div>
+
+  <!-- PROMO STRIP -->
+  <div class="promo-strip" id="promoStrip">
+    <span id="promo1">⚡ Fastest Delivery in Pratap Nagar</span>
+    <span class="promo-dot"></span>
+    <span id="promo2">Free delivery above ₹299</span>
+    <span class="promo-dot"></span>
+    <span id="promo3">Fresh stock daily</span>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+    <div class="section-head">
+      <h2 id="sectionTitle">All Products</h2>
+      <span id="productCount"></span>
+    </div>
+    <div class="grid" id="productGrid"></div>
+
+    <!-- STORE INFO -->
+    <div class="info-card">
+      <h3>📋 Store Info</h3>
+      <div class="info-row">
+        <div class="info-icon-box">📍</div>
+        <div>
+          <div class="info-label">Address</div>
+          <div class="info-val">13, LMJ Rd, Indira Colony, Pratap Nagar,<br>Jodhpur, Rajasthan 342008</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon-box">📞</div>
+        <div>
+          <div class="info-label">Phone &amp; WhatsApp</div>
+          <div class="info-val" id="storePhone">+91 99280 05723</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon-box">🕐</div>
+        <div>
+          <div class="info-label">Hours</div>
+          <div class="info-val" id="storeHours">7:00 AM – 10:00 PM · Open Daily</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon-box">🚚</div>
+        <div>
+          <div class="info-label">Delivery</div>
+          <div class="info-val">Home delivery available · WhatsApp to order</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIXED BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div id="cartBarArea"></div>
+    <button class="wa-btn" onclick="orderWA()">
+      <div class="wa-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.118 1.522 5.845L0 24l6.344-1.493A11.956 11.956 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.82 9.82 0 01-5.007-1.369l-.36-.213-3.767.888.948-3.668-.234-.376A9.82 9.82 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/>
+        </svg>
+      </div>
+      <span id="waBtnText">Order on WhatsApp · +91 99280 05723</span>
+    </button>
+  </div>
+
+  <!-- CART MODAL -->
+  <div class="modal-wrap" id="cartModal" onclick="closeModalOutside(event)">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title">Your Cart 🛒</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div id="cartContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

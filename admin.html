@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Krishna Shopee – Admin Panel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --green:#0c831f; --green-light:#e8f5e9; --green-dark:#0a6b18;
+    --bg:#f4f5f7; --white:#ffffff; --text:#1a1d2e; --muted:#6b7280;
+    --border:#e5e7eb; --red:#dc2626; --red-light:#fef2f2;
+    --orange:#ea580c; --orange-light:#fff7ed;
+    --blue:#2563eb; --blue-light:#eff6ff;
+    --sidebar-w:220px;
+  }
+  body { font-family:'Noto Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width:var(--sidebar-w); background:var(--white); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:100;
+  }
+  .sidebar-logo { padding:20px 16px 16px; border-bottom:1px solid var(--border); }
+  .logo-row { display:flex; align-items:center; gap:10px; }
+  .logo-box { width:36px; height:36px; background:var(--green); border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; font-weight:800; }
+  .logo-text { font-size:15px; font-weight:800; }
+  .logo-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+  .admin-badge { margin-top:10px; display:inline-flex; align-items:center; gap:5px; background:#fef3c7; color:#92400e; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; }
+  .sidebar-nav { flex:1; padding:12px 10px; display:flex; flex-direction:column; gap:2px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; border:none; background:none; width:100%; text-align:left; font-family:inherit; }
+  .nav-item:hover { background:var(--bg); color:var(--text); }
+  .nav-item.active { background:var(--green-light); color:var(--green); }
+  .nav-icon { font-size:16px; flex-shrink:0; }
+  .nav-section-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; padding:12px 12px 4px; }
+  .sidebar-footer { padding:16px; border-top:1px solid var(--border); font-size:11px; color:var(--muted); text-align:center; }
+
+  /* MAIN */
+  .main { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--white); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+  .page-title { font-size:18px; font-weight:800; }
+  .page-sub { font-size:13px; color:var(--muted); margin-top:2px; }
+  .export-btn { display:flex; align-items:center; gap:8px; background:var(--green); color:#fff; border:none; border-radius:9px; padding:10px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .export-btn:hover { background:var(--green-dark); }
+  .content { padding:24px 28px; flex:1; }
+
+  /* PANELS */
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  /* STAT CARDS */
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+  .stat-card { background:var(--white); border-radius:12px; border:1px solid var(--border); padding:16px; }
+  .stat-label { font-size:12px; color:var(--muted); font-weight:600; margin-bottom:6px; }
+  .stat-val { font-size:26px; font-weight:800; color:var(--text); }
+  .stat-tag { font-size:11px; margin-top:4px; font-weight:700; }
+  .stat-tag.green { color:var(--green); }
+  .stat-tag.orange { color:var(--orange); }
+
+  /* SECTION CARD */
+  .card { background:var(--white); border-radius:12px; border:1px solid var(--border); overflow:hidden; margin-bottom:20px; }
+  .card-head { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .card-head h3 { font-size:14px; font-weight:800; }
+  .card-body { padding:20px; }
+
+  /* TABLE */
+  .search-box { display:flex; align-items:center; gap:8px; background:var(--bg); border-radius:8px; padding:8px 12px; flex:1; max-width:300px; }
+  .search-box input { border:none; background:none; font-size:13px; font-family:inherit; outline:none; width:100%; color:var(--text); }
+  .cat-filter { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:13px; font-family:inherit; background:var(--white); color:var(--text); outline:none; cursor:pointer; }
+  .add-product-btn { display:flex; align-items:center; gap:6px; background:var(--blue-light); color:var(--blue); border:1px solid #bfdbfe; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; margin-left:auto; transition:background 0.15s; }
+  .add-product-btn:hover { background:#dbeafe; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead th { text-align:left; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg); }
+  tbody tr { border-bottom:1px solid var(--border); transition:background 0.1s; }
+  tbody tr:hover { background:#fafafa; }
+  tbody tr:last-child { border-bottom:none; }
+  td { padding:10px 12px; vertical-align:middle; }
+  .thumb-cell { width:48px; }
+  .thumb-cell img { width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
+  .thumb-cell .emoji-big { font-size:24px; }
+  .prod-name { font-weight:700; }
+  .prod-unit { font-size:11px; color:var(--muted); margin-top:2px; }
+  .cat-badge { display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700; background:var(--green-light); color:var(--green); }
+  .price-cell { font-weight:700; }
+  .mrp-cell { text-decoration:line-through; color:var(--muted); }
+  .disc-pill { display:inline-block; background:#fef3c7; color:#92400e; font-size:10px; font-weight:800; padding:2px 7px; border-radius:20px; }
+  .action-btns { display:flex; gap:6px; align-items:center; }
+  .btn-edit,.btn-del { border:none; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:opacity 0.15s; }
+  .btn-edit { background:var(--blue-light); color:var(--blue); }
+  .btn-edit:hover { opacity:0.8; }
+  .btn-del { background:var(--red-light); color:var(--red); }
+  .btn-del:hover { opacity:0.8; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:300; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal-box { background:var(--white); border-radius:16px; padding:28px; width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.15); }
+  .modal-title { font-size:17px; font-weight:800; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; }
+  .modal-close-btn { background:var(--bg); border:none; border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; }
+  .form-group { margin-bottom:14px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  label { display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+  input[type=text],input[type=number],select,input[type=tel] { width:100%; border:1.5px solid var(--border); border-radius:8px; padding:10px 12px; font-size:14px; font-family:inherit; color:var(--text); outline:none; transition:border-color 0.15s; background:var(--white); }
+  input:focus,select:focus { border-color:var(--green); }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .btn-save { flex:1; background:var(--green); color:#fff; border:none; border-radius:9px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+  .btn-save:hover { background:var(--green-dark); }
+  .btn-cancel { flex:1; background:var(--bg); color:var(--muted); border:none; border-radius:9px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .btn-cancel:hover { background:var(--border); }
+
+  /* ── IMAGE UPLOAD ZONE ── */
+  .image-upload-zone {
+    border: 2px dashed var(--border); border-radius: 12px;
+    padding: 20px; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative; background: var(--bg);
+    min-height: 120px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+  }
+  .image-upload-zone:hover, .image-upload-zone.drag-over {
+    border-color: var(--green); background: var(--green-light);
+  }
+  .image-upload-zone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    width: 100%; height: 100%; border: none; padding: 0;
+  }
+  .upload-icon { font-size: 28px; }
+  .upload-text { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .upload-sub { font-size: 11px; color: var(--muted); }
+
+  .image-preview-wrap {
+    position: relative; display: inline-block; margin-top: 10px;
+  }
+  .image-preview {
+    width: 100%; max-height: 180px; object-fit: contain;
+    border-radius: 10px; border: 1px solid var(--border);
+    display: block;
+  }
+  .remove-img-btn {
+    position: absolute; top: -8px; right: -8px;
+    background: var(--red); color: #fff; border: none;
+    border-radius: 50%; width: 24px; height: 24px;
+    font-size: 13px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  /* emoji row alongside image upload */
+  .emoji-or-row {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px;
+  }
+  .emoji-or-row input { flex: 1; }
+  .or-divider { font-size: 12px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+
+  /* SETTINGS */
+  .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .setting-item { margin-bottom:16px; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--text); color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:999; opacity:0; transform:translateY(10px); transition:all 0.25s; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateY(0); }
+  .toast.green { background:var(--green); }
+  .toast.red { background:var(--red); }
+
+  /* DELETE */
+  .del-confirm { background:var(--red-light); border:1px solid #fecaca; border-radius:10px; padding:16px; text-align:center; }
+  .del-confirm p { font-size:14px; margin-bottom:12px; }
+  .del-btns { display:flex; gap:8px; justify-content:center; }
+
+  /* SYNC BANNER */
+  .sync-banner {
+    background: var(--green-light); border: 1px solid #a7f3d0;
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+    font-size: 13px; font-weight: 600; color: var(--green);
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  /* RESPONSIVE */
+  @media(max-width:768px) {
+    .sidebar { width:60px; }
+    .logo-text,.logo-sub,.admin-badge,.nav-item span,.nav-section-label { display:none; }
+    .main { margin-left:60px; }
+    .nav-item { justify-content:center; padding:10px; }
+    .stats-row { grid-template-columns:1fr 1fr; }
+    .settings-grid { grid-template-columns:1fr; }
+    .form-row { grid-template-columns:1fr; }
+    .content { padding:16px; }
+    .topbar { padding:12px 16px; }
+  }
+
+  .no-items { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-row">
+      <div class="logo-box">K</div>
+      <div>
+        <div class="logo-text">Krishna Shopee</div>
+        <div class="logo-sub">Pratap Nagar, Jodhpur</div>
+      </div>
+    </div>
+    <div class="admin-badge">⚙️ Admin Panel</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Manage</div>
+    <button class="nav-item active" onclick="showPanel('products')" id="nav-products">
+      <span class="nav-icon">📦</span><span>Products</span>
+    </button>
+    <button class="nav-item" onclick="showPanel('settings')" id="nav-settings">
+      <span class="nav-icon">⚙️</span><span>Settings</span>
+    </button>
+    <div class="nav-section-label">Actions</div>
+    <button class="nav-item" onclick="saveSettings()">
+      <span class="nav-icon">💾</span><span>Save to Store</span>
+    </button>
+    <button class="nav-item" onclick="window.open('index.html','_blank')">
+      <span class="nav-icon">🌐</span><span>View Store</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">v2.0 · Krishna Shopee</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="topbar-title">Products</div>
+      <div class="page-sub" id="topbar-sub">Manage your product catalogue</div>
+    </div>
+    <button class="export-btn" onclick="saveSettings()">💾 Save to Store</button>
+  </div>
+
+  <div class="content">
+
+    <!-- PRODUCTS PANEL -->
+    <div class="panel active" id="panel-products">
+      <div class="sync-banner">
+        ✅ Changes are saved directly to the store via browser storage. Click <strong>"Save to Store"</strong> after making changes.
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Products</div>
+          <div class="stat-val" id="stat-total">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Categories</div>
+          <div class="stat-val" id="stat-cats">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">With Discount</div>
+          <div class="stat-val" id="stat-disc">0</div>
+          <div class="stat-tag orange" id="stat-disc-pct"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">With Images</div>
+          <div class="stat-val" id="stat-images">0</div>
+          <div class="stat-tag green">product photos</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>📋 Product Catalogue</h3>
+          <button class="add-product-btn" onclick="openAddModal()">+ Add Product</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" placeholder="Search products..." id="adminSearch" oninput="renderTable()">
+            </div>
+            <select class="cat-filter" id="catFilter" onchange="renderTable()">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:58px">Image</th>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>MRP</th>
+                  <th>Discount</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="productTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div class="panel" id="panel-settings">
+      <div class="card">
+        <div class="card-head"><h3>📞 WhatsApp & Contact</h3></div>
+        <div class="card-body">
+          <div class="settings-grid">
+            <div class="setting-item">
+              <label>WhatsApp Number (no +, no spaces)</label>
+              <input type="tel" id="set-phone" placeholder="9828230461">
+            </div>
+            <div class="setting-item">
+              <label>Store Name</label>
+              <input type="text" id="set-storename" placeholder="Krishna Shopee">
+            </div>
+            <div class="setting-item">
+              <label>Store Location (for orders)</label>
+              <input type="text" id="set-location" placeholder="Pratap Nagar, Jodhpur">
+            </div>
+            <div class="setting-item">
+              <label>Store Hours</label>
+              <input type="text" id="set-hours" placeholder="7:00 AM – 10:00 PM · Open Daily">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>🚚 Delivery Settings</h3></div>
+        <div class="card-body">
+          <div class="settings-grid">
+            <div class="setting-item">
+              <label>Free Delivery Above (₹)</label>
+              <input type="number" id="set-free-delivery" placeholder="299">
+            </div>
+            <div class="setting-item">
+              <label>Delivery Charge (₹)</label>
+              <input type="number" id="set-delivery-charge" placeholder="30">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>📣 Promo Strip</h3></div>
+        <div class="card-body">
+          <div class="setting-item">
+            <label>Promo Message 1</label>
+            <input type="text" id="set-promo1" placeholder="⚡ Fastest Delivery in Pratap Nagar">
+          </div>
+          <div class="setting-item">
+            <label>Promo Message 2</label>
+            <input type="text" id="set-promo2" placeholder="Free delivery above ₹299">
+          </div>
+          <div class="setting-item">
+            <label>Promo Message 3</label>
+            <input type="text" id="set-promo3" placeholder="Fresh stock daily">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-save" onclick="saveSettings()" style="width:220px">💾 Save Settings to Store</button>
+    </div>
+
+  </div>
+</main>
+
+<!-- ADD/EDIT PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal" onclick="closeProductModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="modal-heading">Add Product</span>
+      <button class="modal-close-btn" onclick="closeProductModal()">✕</button>
+    </div>
+    <input type="hidden" id="edit-id">
+
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" id="f-name" placeholder="e.g. Basmati Rice Premium">
+    </div>
+
+    <!-- IMAGE UPLOAD -->
+    <div class="form-group">
+      <label>Product Image</label>
+      <div class="image-upload-zone" id="dropZone">
+        <input type="file" id="f-image-file" accept="image/*" onchange="handleImageFile(this.files[0])">
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">Drop image here or click to browse</div>
+        <div class="upload-sub">JPG, PNG, WEBP · Max 2 MB · Recommended 400×400px</div>
+      </div>
+      <div id="imagePreviewWrap" style="display:none; margin-top:10px; text-align:center;">
+        <div class="image-preview-wrap">
+          <img id="imagePreview" class="image-preview" src="" alt="Preview">
+          <button class="remove-img-btn" onclick="removeImage()" title="Remove image">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMOJI fallback -->
+    <div class="form-group">
+      <label>Emoji (used when no image is set)</label>
+      <div class="emoji-or-row">
+        <input type="text" id="f-emoji" placeholder="🍚" maxlength="4" style="max-width:120px">
+        <span class="or-divider">← fallback if no image uploaded</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="f-cat">
+          <option>Grains</option><option>Pulses</option><option>Oils</option>
+          <option>Dairy</option><option>Vegetables</option><option>Fruits</option>
+          <option>Spices</option><option>Household</option><option>Snacks</option>
+          <option value="__new__">+ New Category</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Unit / Quantity</label>
+        <input type="text" id="f-unit" placeholder="e.g. 1 kg, 500 g, 1 L">
+      </div>
+    </div>
+
+    <div class="form-group" id="new-cat-wrap" style="display:none">
+      <label>New Category Name</label>
+      <input type="text" id="f-newcat" placeholder="Enter category name">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Selling Price (₹)</label>
+        <input type="number" id="f-price" placeholder="89" min="0">
+      </div>
+      <div class="form-group">
+        <label>MRP / Original Price (₹)</label>
+        <input type="number" id="f-mrp" placeholder="99" min="0">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeProductModal()">Cancel</button>
+      <button class="btn-save" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="del-confirm">
+      <p style="font-size:32px;margin-bottom:8px">🗑️</p>
+      <p><strong id="del-name"></strong></p>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px">This product will be removed from the store.</p>
+      <div class="del-btns" style="margin-top:16px">
+        <button class="btn-cancel" onclick="closeDeleteModal()" style="flex:none;padding:10px 20px">Cancel</button>
+        <button class="btn-del" onclick="confirmDelete()" style="flex:none;padding:10px 20px;border-radius:9px">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+const DEFAULT_PRODUCTS = [
+  { id:1,  name:'Basmati Rice Premium',  emoji:'🍚', image:null, cat:'Grains',     price:89,  mrp:99,  unit:'1 kg'    },
+  { id:2,  name:'Sharbati Atta',         emoji:'🌾', image:null, cat:'Grains',     price:62,  mrp:70,  unit:'1 kg'    },
+  { id:3,  name:'Toor Dal',              emoji:'🫘', image:null, cat:'Pulses',     price:110, mrp:125, unit:'500 g'   },
+  { id:4,  name:'Moong Dal',             emoji:'🟡', image:null, cat:'Pulses',     price:95,  mrp:110, unit:'500 g'   },
+  { id:5,  name:'Chana Dal',             emoji:'🟠', image:null, cat:'Pulses',     price:85,  mrp:95,  unit:'500 g'   },
+  { id:6,  name:'Patanjali Mustard Oil', emoji:'🫙', image:null, cat:'Oils',       price:175, mrp:199, unit:'1 L'     },
+  { id:7,  name:'Fortune Sunflower Oil', emoji:'🌻', image:null, cat:'Oils',       price:145, mrp:165, unit:'1 L'     },
+  { id:8,  name:'Fresh Cow Milk',        emoji:'🥛', image:null, cat:'Dairy',      price:58,  mrp:60,  unit:'1 L'     },
+  { id:9,  name:'Fresh Paneer',          emoji:'🧀', image:null, cat:'Dairy',      price:88,  mrp:100, unit:'200 g'   },
+  { id:10, name:'Amul Butter',           emoji:'🧈', image:null, cat:'Dairy',      price:55,  mrp:60,  unit:'100 g'   },
+  { id:11, name:'Fresh Tomatoes',        emoji:'🍅', image:null, cat:'Vegetables', price:38,  mrp:50,  unit:'500 g'   },
+  { id:12, name:'Onions',               emoji:'🧅', image:null, cat:'Vegetables', price:32,  mrp:40,  unit:'1 kg'    },
+  { id:13, name:'Potatoes',             emoji:'🥔', image:null, cat:'Vegetables', price:28,  mrp:35,  unit:'1 kg'    },
+  { id:14, name:'Green Chillies',        emoji:'🌶️',image:null, cat:'Vegetables', price:18,  mrp:25,  unit:'100 g'   },
+  { id:15, name:'Coriander Leaves',      emoji:'🌿', image:null, cat:'Vegetables', price:10,  mrp:15,  unit:'1 bunch' },
+  { id:16, name:'Bananas',              emoji:'🍌', image:null, cat:'Fruits',     price:48,  mrp:60,  unit:'1 dozen' },
+  { id:17, name:'Apples Shimla',        emoji:'🍎', image:null, cat:'Fruits',     price:115, mrp:140, unit:'1 kg'    },
+  { id:18, name:'MDH Turmeric',         emoji:'🟡', image:null, cat:'Spices',     price:42,  mrp:50,  unit:'100 g'   },
+  { id:19, name:'Everest Red Chilli',   emoji:'🔴', image:null, cat:'Spices',     price:48,  mrp:55,  unit:'100 g'   },
+  { id:20, name:'MDH Garam Masala',     emoji:'🟤', image:null, cat:'Spices',     price:58,  mrp:70,  unit:'50 g'    },
+  { id:21, name:'Surf Excel Easy Wash', emoji:'🫧', image:null, cat:'Household',  price:82,  mrp:95,  unit:'500 g'   },
+  { id:22, name:'Parle-G Biscuits',     emoji:'🍪', image:null, cat:'Snacks',     price:10,  mrp:10,  unit:'100 g'   },
+  { id:23, name:'Haldiram Namkeen',     emoji:'🥜', image:null, cat:'Snacks',     price:38,  mrp:40,  unit:'200 g'   },
+  { id:24, name:'Maggi Noodles',        emoji:'🍜', image:null, cat:'Snacks',     price:14,  mrp:14,  unit:'70 g'    },
+];
+
+const DEFAULT_SETTINGS = {
+  phone:'9828230461', storeName:'Krishna Shopee', location:'Pratap Nagar, Jodhpur',
+  hours:'7:00 AM – 10:00 PM · Open Daily', freeDelivery:299, deliveryCharge:30,
+  promo1:'⚡ Fastest Delivery in Pratap Nagar', promo2:'Free delivery above ₹299', promo3:'Fresh stock daily'
+};
+
+// Load from localStorage
+let products, settings;
+try { products = JSON.parse(localStorage.getItem('ks_products')) || DEFAULT_PRODUCTS; } catch(e) { products = DEFAULT_PRODUCTS; }
+try { settings = JSON.parse(localStorage.getItem('ks_settings')) || DEFAULT_SETTINGS; } catch(e) { settings = DEFAULT_SETTINGS; }
+// Ensure image field exists on all products
+products = products.map(p => ({ image: null, ...p }));
+
+let deleteTarget = null;
+let nextId = Math.max(...products.map(p => p.id), 0) + 1;
+let currentImageBase64 = null; // for modal
+
+// ── SAVE TO STORE ────────────────────────────────────────────────────
+function saveToStore() {
+  try {
+    localStorage.setItem('ks_products', JSON.stringify(products));
+    localStorage.setItem('ks_settings', JSON.stringify(settings));
+    showToast('✅ Saved! Open index.html to see changes.', 'green');
+  } catch(e) {
+    if (e.name === 'QuotaExceededError') {
+      showToast('⚠️ Storage full — try reducing image sizes.', 'red');
+    } else {
+      showToast('Save failed: ' + e.message, 'red');
+    }
+  }
+}
+
+// ── PANELS ───────────────────────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  const titles = {
+    products: ['Products', 'Manage your product catalogue'],
+    settings:  ['Settings', 'Configure store details & delivery']
+  };
+  document.getElementById('topbar-title').textContent = titles[name][0];
+  document.getElementById('topbar-sub').textContent   = titles[name][1];
+  if (name === 'settings') loadSettings();
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────
+function updateStats() {
+  const discounted = products.filter(p => p.mrp > p.price);
+  const withImages = products.filter(p => p.image);
+  document.getElementById('stat-total').textContent    = products.length;
+  document.getElementById('stat-cats').textContent     = new Set(products.map(p => p.cat)).size;
+  document.getElementById('stat-disc').textContent     = discounted.length;
+  document.getElementById('stat-disc-pct').textContent = products.length ? Math.round(discounted.length/products.length*100)+'% of products' : '';
+  document.getElementById('stat-images').textContent   = withImages.length;
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────────
+function renderTable() {
+  const q   = document.getElementById('adminSearch').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  let list  = products;
+  if (cat) list = list.filter(p => p.cat === cat);
+  if (q)   list = list.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q));
+
+  const tbody = document.getElementById('productTableBody');
+  if (!list.length) { tbody.innerHTML='<tr><td colspan="7" class="no-items">😕 No products found</td></tr>'; return; }
+
+  tbody.innerHTML = list.map(p => {
+    const disc = p.mrp > p.price ? Math.round((p.mrp - p.price)/p.mrp*100) : 0;
+    const thumb = p.image
+      ? `<td class="thumb-cell"><img src="${p.image}" alt="${p.name}"></td>`
+      : `<td class="thumb-cell"><span class="emoji-big">${p.emoji}</span></td>`;
+    return `<tr>
+      ${thumb}
+      <td><div class="prod-name">${p.name}</div><div class="prod-unit">${p.unit}</div></td>
+      <td><span class="cat-badge">${p.cat}</span></td>
+      <td class="price-cell">₹${p.price}</td>
+      <td class="mrp-cell">₹${p.mrp}</td>
+      <td>${disc>0?`<span class="disc-pill">${disc}% OFF</span>`:'<span style="color:var(--muted);font-size:12px">—</span>'}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-edit" onclick="openEditModal(${p.id})">✏️ Edit</button>
+          <button class="btn-del" onclick="openDeleteModal(${p.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function buildCatFilter() {
+  const cats = ['', ...new Set(products.map(p => p.cat))];
+  const sel  = document.getElementById('catFilter');
+  const cur  = sel.value;
+  sel.innerHTML = cats.map(c => `<option value="${c}">${c || 'All Categories'}</option>`).join('');
+  sel.value = cats.includes(cur) ? cur : '';
+}
+
+// ── IMAGE HANDLING ─────────────────────────────────────────────────────
+function handleImageFile(file) {
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Image too large. Please use under 2 MB.', 'red'); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Compress/resize using canvas
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+      else        { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      currentImageBase64 = canvas.toDataURL('image/jpeg', 0.82);
+      showImagePreview(currentImageBase64);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showImagePreview(src) {
+  document.getElementById('dropZone').style.display = 'none';
+  document.getElementById('imagePreview').src = src;
+  document.getElementById('imagePreviewWrap').style.display = 'block';
+}
+
+function removeImage() {
+  currentImageBase64 = null;
+  document.getElementById('imagePreview').src = '';
+  document.getElementById('imagePreviewWrap').style.display = 'none';
+  document.getElementById('dropZone').style.display = 'flex';
+  document.getElementById('f-image-file').value = '';
+}
+
+// Drag-and-drop events
+function setupDropZone() {
+  const zone = document.getElementById('dropZone');
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', e => { zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleImageFile(file);
+    else showToast('Please drop an image file.', 'red');
+  });
+}
+
+// ── ADD / EDIT MODAL ──────────────────────────────────────────────────
+function resetModal() {
+  currentImageBase64 = null;
+  removeImage();
+  ['name','emoji','price','mrp','unit'].forEach(f => { const el = document.getElementById('f-'+f); if(el) el.value=''; });
+  document.getElementById('f-cat').value = 'Grains';
+  document.getElementById('new-cat-wrap').style.display = 'none';
+}
+
+function openAddModal() {
+  document.getElementById('modal-heading').textContent = 'Add Product';
+  document.getElementById('edit-id').value = '';
+  resetModal();
+  document.getElementById('productModal').classList.add('open');
+}
+
+function openEditModal(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('modal-heading').textContent = 'Edit Product';
+  document.getElementById('edit-id').value = id;
+  resetModal();
+  document.getElementById('f-name').value  = p.name;
+  document.getElementById('f-emoji').value = p.emoji;
+  document.getElementById('f-price').value = p.price;
+  document.getElementById('f-mrp').value   = p.mrp;
+  document.getElementById('f-unit').value  = p.unit;
+
+  const catSel = document.getElementById('f-cat');
+  if (![...catSel.options].some(o => o.value === p.cat)) {
+    catSel.insertBefore(new Option(p.cat, p.cat), catSel.lastElementChild);
+  }
+  catSel.value = p.cat;
+  document.getElementById('new-cat-wrap').style.display = 'none';
+
+  if (p.image) {
+    currentImageBase64 = p.image;
+    showImagePreview(p.image);
+  }
+  document.getElementById('productModal').classList.add('open');
+}
+
+document.getElementById('f-cat').addEventListener('change', function() {
+  document.getElementById('new-cat-wrap').style.display = this.value === '__new__' ? 'block' : 'none';
+});
+
+function closeProductModal() { document.getElementById('productModal').classList.remove('open'); }
+function closeProductModalOutside(e) { if (e.target === document.getElementById('productModal')) closeProductModal(); }
+
+function saveProduct() {
+  const id    = document.getElementById('edit-id').value;
+  const name  = document.getElementById('f-name').value.trim();
+  const emoji = document.getElementById('f-emoji').value.trim() || '📦';
+  const price = parseFloat(document.getElementById('f-price').value);
+  const mrp   = parseFloat(document.getElementById('f-mrp').value);
+  const unit  = document.getElementById('f-unit').value.trim();
+  let cat     = document.getElementById('f-cat').value;
+  if (cat === '__new__') cat = document.getElementById('f-newcat').value.trim();
+
+  if (!name || !unit || isNaN(price) || isNaN(mrp)) { showToast('Please fill in all required fields', 'red'); return; }
+  if (price > mrp) { showToast('Price cannot be higher than MRP', 'red'); return; }
+
+  const productData = { name, emoji, image: currentImageBase64, cat, price, mrp, unit };
+
+  if (id) {
+    const idx = products.findIndex(p => p.id == id);
+    products[idx] = { ...products[idx], ...productData };
+    showToast('Product updated!', 'green');
+  } else {
+    products.push({ id: nextId++, ...productData });
+    showToast('Product added!', 'green');
+  }
+
+  closeProductModal();
+  buildCatFilter();
+  updateStats();
+  renderTable();
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────────
+function openDeleteModal(id) {
+  deleteTarget = id;
+  const p = products.find(x => x.id === id);
+  document.getElementById('del-name').textContent = (p.image ? '🖼️' : p.emoji) + ' ' + p.name;
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); deleteTarget=null; }
+function confirmDelete() {
+  products = products.filter(p => p.id !== deleteTarget);
+  closeDeleteModal(); buildCatFilter(); updateStats(); renderTable();
+  showToast('Product deleted', 'red');
+}
+
+// ── SETTINGS ───────────────────────────────────────────────────────────
+function loadSettings() {
+  document.getElementById('set-phone').value           = settings.phone || '';
+  document.getElementById('set-storename').value       = settings.storeName || '';
+  document.getElementById('set-location').value        = settings.location || '';
+  document.getElementById('set-hours').value           = settings.hours || '';
+  document.getElementById('set-free-delivery').value   = settings.freeDelivery || 299;
+  document.getElementById('set-delivery-charge').value = settings.deliveryCharge || 30;
+  document.getElementById('set-promo1').value          = settings.promo1 || '';
+  document.getElementById('set-promo2').value          = settings.promo2 || '';
+  document.getElementById('set-promo3').value          = settings.promo3 || '';
+}
+
+function saveSettings() {
+  settings = {
+    phone:           document.getElementById('set-phone').value.trim(),
+    storeName:       document.getElementById('set-storename').value.trim(),
+    location:        document.getElementById('set-location').value.trim(),
+    hours:           document.getElementById('set-hours').value.trim(),
+    freeDelivery:    parseFloat(document.getElementById('set-free-delivery').value) || 299,
+    deliveryCharge:  parseFloat(document.getElementById('set-delivery-charge').value) || 30,
+    promo1:          document.getElementById('set-promo1').value.trim(),
+    promo2:          document.getElementById('set-promo2').value.trim(),
+    promo3:          document.getElementById('set-promo3').value.trim(),
+  };
+  saveToStore();
+}
+
+// ── TOAST ───────────────────────────────────────────────────────────────
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => { t.className = 'toast'; }, 3200);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+setupDropZone();
+buildCatFilter();
+updateStats();
+renderTable();
+loadSettings();
+</script>
+</body>
+</html>
